@@ -183,6 +183,10 @@ public class tictacGUI extends JFrame{
 	    playButton.setEnabled(set);
 	    refreshButton.setEnabled(false);
 	    gameBoardSet = true;
+	    if(isOver) {
+		t.cancel();
+		t.purge();
+	    }
 	}
 	
 	for(int i=0; i<9; i++) {
@@ -247,11 +251,13 @@ public class tictacGUI extends JFrame{
     }
 
     private void refresh() {
-	String board;
-	if(!node.isHost())
-	   board = node.askForBoard();
-	else board = node.getGameBoard();
-	getBoard(board, false);
+	if(!node.isPlaying){
+	    String board;
+	    if(!node.isHost())
+		board = node.askForBoard();
+	    else board = node.getGameBoard();
+	    getBoard(board, false);
+	}
     }
 
     private void endTurn() {
