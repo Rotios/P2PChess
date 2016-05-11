@@ -109,8 +109,8 @@ public class p2pGUI extends JFrame {
         String warning = "";
 
         int nickLen = nickField.getText().length();
-        if(nickLen < 4 || nickLen > 15)
-            warning += "Nickname must be between 4 and 15 characters.\n";
+        if(nickLen < 3 || nickLen > 15)
+            warning += "Nickname must be between 3 and 15 characters.\n";
 
         String port = portField.getText();
 
