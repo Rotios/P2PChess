@@ -287,7 +287,7 @@ public class PlayerNode{
 		config.setServerURL(new URL("http://" + newMasterIP + ":" + portNumber));
 		    
 		// Tell the first host in the hosts HashTable to become the master
-		if((boolean) client.execute("handler.setMaster", new String[] {newMasterIP})){
+		if((boolean) client.execute("handler.setMaster", new String[] {})){
 		    isMaster = false;
 		} 
 		
