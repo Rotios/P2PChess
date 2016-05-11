@@ -231,14 +231,14 @@ public class PlayerNode{
 		client.execute("handler.removePlayer", new String[] {userName});
 		inGame = false;
 	    } else if (!isPlaying){
-		removePlayer(myIP);
+		removePlayer(userName);
 		String playerIP = getRandomPlayerIP();
 		config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
 		client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
 		isPlaying = false;
 		inGame = false;
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
-		client.execute("handler.removeHost", new String[] {});
+		client.execute("handler.removeHost", new String[] {userName});
 		isHost = false;
 	    }
 	    return true;
@@ -395,6 +395,9 @@ public class PlayerNode{
 	System.out.println("sendResult: "+endBoard);
         try {
 	    if(isHost){
+		config.setServerURL(new URL("http://" + masterIP + 
+					    ":" + portNumber));
+		client.execute("handler.removeHost", new String[] {userName});
 		contactAllPlayers("handler.setResult", new String[] {endBoard});
 	    } else {
 		config.setServerURL(new URL("http://" + hostIP + 
