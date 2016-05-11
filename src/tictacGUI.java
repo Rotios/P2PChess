@@ -285,9 +285,12 @@ public class tictacGUI extends JFrame{
     }
 
     private void quitGame(){
-	node.quitGame();
-	this.setVisible(false);
-	this.dispose();
+	if(node.quitGame()) {
+	    this.setVisible(false);
+	    t.cancel();
+	    t.purge();
+	    this.dispose();
+	}
     }
     
     /*public static void main(String[] args) {
