@@ -251,7 +251,7 @@ public class tictacGUI extends JFrame{
     }
 
     private void refresh() {
-	if(!node.isPlaying){
+	if(!node.isPlaying()){
 	    String board;
 	    if(!node.isHost())
 		board = node.askForBoard();
