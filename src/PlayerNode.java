@@ -112,6 +112,19 @@ public class PlayerNode{
 	} else {return false;}
     }
     
+    //Refresh Button
+    public String askForBoard(){
+	try{
+	    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
+	    
+	    //client.execute("handler.printStuff", new String[0]);
+	    this.gameBoard = (String) client.execute("handler.getGameBoard", new String[0]);
+	    
+	    return gameBoard;
+	} catch(Exception e){ System.out.println("ERROR"); return "";}
+	
+    }
+
     //Start Button
     public boolean startGame() {
 	boolean result = false;
@@ -133,6 +146,7 @@ public class PlayerNode{
 		result = true;
 	    }
 	    else {
+		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		result = (boolean) client.execute("handler.newHost", new String[] {userName, myIP});
 	    }
 	    this.addPlayer(userName,myIP);
@@ -226,21 +240,23 @@ public class PlayerNode{
 
     public boolean quitGame() {
 	try {
-	    if (!isHost && !isPlaying) {
+	    if (!isHost && (!isPlaying)) {
 		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
 		client.execute("handler.removePlayer", new String[] {userName});
-		inGame = false;
+		resetState();
+		
 		return true;
-	    } else if (!isPlaying){
+	    } else if (!isPlaying || (players.keySet().toArray().length <= 1)){
 		removePlayer(userName);
-		String playerIP = getRandomPlayerIP();
-		config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
-		client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
-		isPlaying = false;
-		inGame = false;
-		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
-		client.execute("handler.removeHost", new String[] {userName});
-		isHost = false;
+		if (players.keySet().toArray().length != 0) {
+		    String playerIP = getRandomPlayerIP();
+		    config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
+		    client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
+		
+		    config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
+		    client.execute("handler.removeHost", new String[] {userName});
+		}
+		resetState();
 		return true;
 	    }
 	    return false;
@@ -266,7 +282,6 @@ public class PlayerNode{
 	return true;
     }
     
- 
     //Logout Button
     public boolean logout(){
 	//System.exit(1);
@@ -287,8 +302,9 @@ public class PlayerNode{
 		config.setServerURL(new URL("http://" + newMasterIP + ":" + portNumber));
 		    
 		// Tell the first host in the hosts HashTable to become the master
-		if((boolean) client.execute("handler.setMaster", new String[] {newMasterIP})){
+		if((boolean) client.execute("handler.setMaster", new String[] {})){
 		    isMaster = false;
+		    resetState();
 		} 
 		
 	    }
@@ -328,14 +344,14 @@ public class PlayerNode{
 		isPlaying = true;
 		inGame = true;
 		result = true;
-	    } 
-	    else {
+	    } else {
 	    
 		// Connect to the random host above
 		config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
-	    	    
+	    	
 		client.execute("handler.setGameBoard", new String[] {newBoard});
 		client.execute("handler.setIsPlaying", new Boolean[] {true});
+		
 		// Change the state appropriately
 		isPlaying = false;
 		inGame = true;
@@ -382,11 +398,13 @@ public class PlayerNode{
 	System.out.println("sendResult: "+endBoard);
         try {
 	    if(isHost){
+		setResult(endBoard);
 		config.setServerURL(new URL("http://" + masterIP + 
 					    ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
 		contactAll(players, "handler.setResult", new String[] {endBoard});
 	    } else {
+		setResult(endBoard);
 		config.setServerURL(new URL("http://" + hostIP + 
 					    ":" + portNumber));
 		client.execute("handler.sendResult", new String[] {endBoard});

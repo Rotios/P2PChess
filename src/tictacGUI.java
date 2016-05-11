@@ -161,29 +161,30 @@ public class tictacGUI extends JFrame{
 	    noughts = false;
 	    result.setText("Crosses Move");
 	}
-
-	if(array[0] == 'X') {
-	    isOver = true;
-	    result.setText("Crosses Win!");
-	    passButton.setEnabled(false);
-	    playButton.setEnabled(false);
-	    refreshButton.setEnabled(false);
-	    t.cancel();
-	    t.purge();
-	}else if(array[0] == 'O'){
-	    isOver = true;
-	    result.setText("Noughts Win!");
-	    passButton.setEnabled(false);
-	    playButton.setEnabled(false);
-	    refreshButton.setEnabled(false);
-	    t.cancel();
-	    t.purge();
-	} else {
-	    isOver = false;
-	    passButton.setEnabled(true);
-	    playButton.setEnabled(true);
-	    refreshButton.setEnabled(false);
-	    gameBoardSet = true;
+	if(node.isPlaying()) {
+	    if(array[0] == 'X') {
+		isOver = true;
+		result.setText("Crosses Win!");
+		passButton.setEnabled(false);
+		playButton.setEnabled(false);
+		refreshButton.setEnabled(false);
+		t.cancel();
+		t.purge();
+	    }else if(array[0] == 'O'){
+		isOver = true;
+		result.setText("Noughts Win!");
+		passButton.setEnabled(false);
+		playButton.setEnabled(false);
+		refreshButton.setEnabled(false);
+		t.cancel();
+		t.purge();
+	    } else {
+		isOver = false;
+		passButton.setEnabled(true);
+		playButton.setEnabled(true);
+		refreshButton.setEnabled(false);
+		gameBoardSet = true;
+	    }
 	}
 
 	for(int i=0; i<9; i++) {
@@ -248,7 +249,11 @@ public class tictacGUI extends JFrame{
     }
 
     private void refresh() {
-	
+	String board;
+	if(!node.isHost())
+	   board = node.askForBoard();
+	else board = node.getGameBoard();
+	getBoard(board);
     }
 
     private void endTurn() {
