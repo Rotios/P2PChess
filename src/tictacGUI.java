@@ -105,8 +105,8 @@ public class tictacGUI extends JFrame{
 	    );
 
 	quitButton = new JButton("QUIT");
-	playButton.setEnabled(true);
-	playButton.addActionListener(new java.awt.event.ActionListener() {
+	quitButton.setEnabled(true);
+	quitButton.addActionListener(new java.awt.event.ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    quitGame();
 		}
