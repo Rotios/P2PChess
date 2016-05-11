@@ -21,15 +21,15 @@ public class PlayerNode{
     private static boolean isUpdated = false;
     private static boolean isPlaying = false;
 
-    private static String gameResult = "";
     private static String gameBoard = "";
-    private static String gameState = "";
 
+    // IP's and User Info
     private static String userName = "";
     private static String portNumber = "";
     private static String myIP = "";
     private static String masterIP = "";
     private static String hostIP = "";
+    private static String curPlayer = "";
 
     // HashMaps to save known hosts and players
     private static HashMap<String, String> hosts= new HashMap<String, String>();
@@ -74,6 +74,20 @@ public class PlayerNode{
 	} catch(Exception e) {System.err.println("Exception = " + e);}
     }
 
+    public String getCurPlayer(){
+	return curPlayer;
+    }
+
+    public Boolean resetState(){
+	inGame = false;
+	isUpdated = false;
+	isPlaying = false;
+	
+	hostIP = "";
+	curPlayer = "";
+	return true;
+    }
+
     // http://stackoverflow.com/questions/2939218/getting-the-external-ip-address-in-java
     public String getPublicIP(){
 	try{
@@ -110,6 +124,7 @@ public class PlayerNode{
 	gameBoard = "-----------";
 	players.clear();
 	hostIP = myIP;
+	curPlayer = myIP;
 
 	System.out.println("Started game. isMaster is " + isMaster);
 	try{
@@ -209,6 +224,56 @@ public class PlayerNode{
 	return result;
     }
 
+    public boolean quitGame() {
+	try {
+	    if (!isHost && !isPlaying) {
+		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
+		client.execute("handler.removePlayer", new String[] {userName});
+		inGame = false;
+	    } else if (!isPlaying){
+		removePlayer(myIP);
+		String playerIP = getRandomPlayerIP();
+		config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
+		client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
+		isPlaying = false;
+		inGame = false;
+		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
+		client.execute("handler.removeHost", new String[] {});
+		isHost = false;
+	    }
+	    return true;
+	} catch (Exception e) {return false;} 
+    }
+
+    public boolean makeHost(HashMap playerList, String currentPlayer, String gameBoard) {
+	try {
+	    this.gameBoard = gameBoard;
+	    curPlayer = currentPlayer;
+	    isHost = true;
+	    hostIP = myIP;
+	    players = playerList;
+	    contactAllPlayers("handler.setHost", new String[] {myIP});
+	    config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
+	    client.execute("handler.newHost", new String[] {userName, myIP});
+	    return true;
+	} catch (Exception e) { return false;}
+    }
+
+    public boolean setHost(String hostIP){
+	this.hostIP = hostIP;
+	return true;
+    }
+    
+    public boolean contactAllPlayers(String method, Object[] toSend) throws Exception{
+	Set<String> recipients = players.keySet();
+	for(String recip: recipients){   
+	    config.setServerURL(new URL("http://" + players.get(recip) + 
+					":" + portNumber));
+	    client.execute(method, toSend);
+	}
+	return true;
+    }
+    
     //Logout Button
     public boolean logout(){
 	//System.exit(1);
@@ -222,7 +287,6 @@ public class PlayerNode{
 		    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
 		    client.execute("handler.removePlayer", new String[] {userName});
 		}
-		
 	    } else {
 		if (isHost) {
 		    hosts.remove(userName);
@@ -256,7 +320,6 @@ public class PlayerNode{
 	    if(isHost) {
 		processTurn(newBoard);
 		return true;
-		
 	    } else{
 		isPlaying = false;
 		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
@@ -273,6 +336,7 @@ public class PlayerNode{
 	try{
 	    String playerIP = this.getRandomPlayerIP();
 	    System.out.println("This guy has it = " + playerIP);
+	    curPlayer = playerIP;
 	    if (playerIP.equals(myIP)) {
 		isPlaying = true;
 		inGame = true;
@@ -322,6 +386,7 @@ public class PlayerNode{
 	System.out.println("setResult: "+gameBoard);	
 	inGame = false;
 	isPlaying = false;
+	curPlayer = "";
 	return true;
     }
 
@@ -330,13 +395,7 @@ public class PlayerNode{
 	System.out.println("sendResult: "+endBoard);
         try {
 	    if(isHost){
-		Set<String> recipients = players.keySet();
-		for(String recip: recipients){
-		
-	            config.setServerURL(new URL("http://" + players.get(recip) + 
-					    ":" + portNumber));
-		    client.execute("handler.setResult", new String[] {endBoard});
-		}
+		contactAllPlayers("handler.setResult", new String[] {endBoard});
 	    } else {
 		config.setServerURL(new URL("http://" + hostIP + 
 					    ":" + portNumber));
@@ -389,10 +448,6 @@ public class PlayerNode{
 
     public String getGameBoard() {
 	return gameBoard;
-    }
-
-    public String getGameResult() {
-	return gameResult;
     }
 
     //Return port number node is running on
