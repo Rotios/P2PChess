@@ -397,6 +397,9 @@ public class PlayerNode{
 	System.out.println("sendResult: "+endBoard);
         try {
 	    if(isHost){
+		config.setServerURL(new URL("http://" + masterIP + 
+					    ":" + portNumber));
+		client.execute("handler.removeHost", new String[] {userName});
 		contactAllPlayers("handler.setResult", new String[] {endBoard});
 	    } else {
 		config.setServerURL(new URL("http://" + hostIP + 
