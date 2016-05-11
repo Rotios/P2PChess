@@ -1,1 +1,1 @@
-# P2PChess
+# Jose Hates Puppies with a Firey Passion!
