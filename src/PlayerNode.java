@@ -230,6 +230,7 @@ public class PlayerNode{
 		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
 		client.execute("handler.removePlayer", new String[] {userName});
 		inGame = false;
+		return true;
 	    } else if (!isPlaying){
 		removePlayer(userName);
 		String playerIP = getRandomPlayerIP();
@@ -240,8 +241,9 @@ public class PlayerNode{
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
 		isHost = false;
+		return true;
 	    }
-	    return true;
+	    return false;
 	} catch (Exception e) {return false;} 
     }
 
