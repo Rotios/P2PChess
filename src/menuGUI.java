@@ -150,8 +150,8 @@ public class menuGUI extends JFrame{
     }
 
     private void logout() {
-	System.exit(1);
 	node.logout();
+	System.exit(1);
     }
 
 }
