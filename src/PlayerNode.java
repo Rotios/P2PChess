@@ -254,7 +254,7 @@ public class PlayerNode{
 	    isHost = true;
 	    hostIP = myIP;
 	    players = playerList;
-	    contactAllPlayers("handler.setHost", new String[] {myIP});
+	    contactAll(players, "handler.setHost", new String[] {myIP});
 	    config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 	    client.execute("handler.newHost", new String[] {userName, myIP});
 	    return true;
@@ -266,46 +266,31 @@ public class PlayerNode{
 	return true;
     }
     
-    public boolean contactAllPlayers(String method, Object[] toSend) throws Exception{
-	Set<String> recipients = players.keySet();
-	for(String recip: recipients){   
-	    config.setServerURL(new URL("http://" + players.get(recip) + 
-					":" + portNumber));
-	    client.execute(method, toSend);
-	}
-	return true;
-    }
-    
+ 
     //Logout Button
     public boolean logout(){
 	//System.exit(1);
 	try{
 	    if (!isMaster) {
 		if(isHost){
-		    config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
-		    client.execute("handler.removeHost", new String[] {userName});
-		}
-		if (inGame) {
+		    quitGame();
+		} else if (inGame) {
 		    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
 		    client.execute("handler.removePlayer", new String[] {userName});
 		}
 	    } else {
+		// If you are the master, pass along your duties
 		if (isHost) {
 		    hosts.remove(userName);
 		}
-
-		// If you are the master, keep trying hosts until you find one to take over
-		String[] keys = (String[]) this.hosts.keySet().toArray();
-		for(int i = 0; isMaster && i < keys.length; ++i){
-
-		    String newMasterIP = this.hosts.get(keys[i]);
-		    config.setServerURL(new URL("http://" + newMasterIP + ":" + portNumber));
+		String newMasterIP = getRandomHostIP();
+		config.setServerURL(new URL("http://" + newMasterIP + ":" + portNumber));
 		    
-		    // Tell the first host in the hosts HashTable to become the master
-		    if((boolean) client.execute("handler.setMaster", new String[] {newMasterIP})){
-			isMaster = false;
-		    } 
-		}
+		// Tell the first host in the hosts HashTable to become the master
+		if((boolean) client.execute("handler.setMaster", new String[] {newMasterIP})){
+		    isMaster = false;
+		} 
+		
 	    }
 	    return true;
 	} catch (Exception e) {return false;}
@@ -400,7 +385,7 @@ public class PlayerNode{
 		config.setServerURL(new URL("http://" + masterIP + 
 					    ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
-		contactAllPlayers("handler.setResult", new String[] {endBoard});
+		contactAll(players, "handler.setResult", new String[] {endBoard});
 	    } else {
 		config.setServerURL(new URL("http://" + hostIP + 
 					    ":" + portNumber));
@@ -436,14 +421,21 @@ public class PlayerNode{
             isMaster = true;
             masterIP = myIP;
 
-            Set<String> keys = this.hosts.keySet();
-            for(String key: keys){
-		config.setServerURL(new URL("http://" + portNumber + ":" + this.hosts.get(key)));
-		client.execute("handler.newMaster", new String[] {masterIP});
-            }
+	    contactAll(hosts, "handler.newMaster", new String[] {masterIP});
 	} catch (Exception e) {return false;}
 	return true;
     }
+
+    public boolean contactAll(HashMap map, String method, Object[] toSend) throws Exception{
+	Set<String> recipients = map.keySet();
+	for(String recip: recipients){   
+	    config.setServerURL(new URL("http://" + map.get(recip) + 
+					":" + portNumber));
+	    client.execute(method, toSend);
+	}
+	return true;
+    }
+    
 
     //Used to get known hosts of this node
     public HashMap<String,String> getHosts() {
