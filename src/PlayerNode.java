@@ -252,10 +252,10 @@ public class PlayerNode{
 		    String playerIP = getRandomPlayerIP();
 		    config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
 		    client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
-		
-		    config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
-		    client.execute("handler.removeHost", new String[] {userName});
 		}
+		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
+		client.execute("handler.removeHost", new String[] {userName});
+		
 		resetState();
 		return true;
 	    }
