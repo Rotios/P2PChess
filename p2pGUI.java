@@ -1,9 +1,7 @@
-//(c) 2015 John Freeman
+//(c) 2016 John Freeman
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Vector;
-import java.util.Iterator;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
@@ -44,38 +42,38 @@ public class p2pGUI extends JFrame {
 	content.setLayout(new GridLayout(4,2));
 
 	//Initalize search field with a listener
-    nickLabel = new JLabel();
-    nickLabel.setText("Nickname: ");
-    content.add(nickLabel);
+	nickLabel = new JLabel();
+	nickLabel.setText("Nickname: ");
+	content.add(nickLabel);
 	nickField = new JTextField(20);
 	content.add(nickField);
 
-    portLabel = new JLabel();
-    portLabel.setText("Port #: ");
-    content.add(portLabel);
-    portField = new JTextField(10);
-    content.add(portField);
+	portLabel = new JLabel();
+	portLabel.setText("Port #: ");
+	content.add(portLabel);
+	portField = new JTextField(10);
+	content.add(portField);
 
-    ipLabel = new JLabel();
-    ipLabel.setText("IP Address: ");
-    content.add(ipLabel);
-    ipField = new JTextField(20);
-    content.add(ipField);
+	ipLabel = new JLabel();
+	ipLabel.setText("IP Address: ");
+	content.add(ipLabel);
+	ipField = new JTextField(20);
+	content.add(ipField);
 
 	networkButton = new JButton("Start Network");
         networkButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                startNetwork();
-            }
-        });
+		public void actionPerformed(java.awt.event.ActionEvent evt) {
+		    startNetwork();
+		}
+	    });
 	content.add(networkButton);
 
-    connectButton = new JButton("Connect");
+	connectButton = new JButton("Connect");
         connectButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                connectToNetwork();
-            }
-        });
+		public void actionPerformed(java.awt.event.ActionEvent evt) {
+		    connectToNetwork();
+		}
+	    });
         content.add(connectButton);
 
 	//set window visible
@@ -86,8 +84,8 @@ public class p2pGUI extends JFrame {
         String warning = "";
 
         int nickLen = nickField.getText().length();
-        if(nickLen < 4 || nickLen > 15)
-            warning += "Nickname must be between 4 and 15 characters.\n";
+        if(nickLen < 3 || nickLen > 15)
+            warning += "Nickname must be between 3 and 15 characters.\n";
 
         String port = portField.getText();
 
@@ -102,8 +100,8 @@ public class p2pGUI extends JFrame {
         if(!warning.equals(""))
             JOptionPane.showMessageDialog(this, warning);
         else {
-          menuGUI menu = new menuGUI(nickField.getText(), port, "You");
-          this.setVisible(false);
+	    menuGUI menu = new menuGUI(nickField.getText(), port);
+	    this.setVisible(false);
         }
     }
 
@@ -124,7 +122,15 @@ public class p2pGUI extends JFrame {
             warning += "Port # must be a number between 8000 - 9999.\n";
         }
 
-	// if()
+	if(ipField.getText().equals(""))
+	    warning += "Need an Ip to connect to a network.\n";
+
+	 if(!warning.equals(""))
+            JOptionPane.showMessageDialog(this, warning);
+        else {
+	    menuGUI menu = new menuGUI(nickField.getText(), port, ipField.getText());
+	    this.setVisible(false);
+        }
     }
 
     public static void main(String[] args) {
