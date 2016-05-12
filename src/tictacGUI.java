@@ -184,12 +184,13 @@ public class tictacGUI extends JFrame{
 	    refreshButton.setEnabled(false);
 	    gameBoardSet = true;
 	    isOver = false;
-	} else {
+	} 
+	/*else {
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
 	    refreshButton.setEnabled(true);
 	    isOver = false;
-	}
+	    }*/
 	
 	for(int i=0; i<9; i++) {
 	    char ch = ' ';
