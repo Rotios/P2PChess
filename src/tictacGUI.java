@@ -178,11 +178,16 @@ public class tictacGUI extends JFrame{
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
-	} else {
+	} else if (node.isPlaying()){
 	    passButton.setEnabled(true);
 	    playButton.setEnabled(true);
 	    refreshButton.setEnabled(false);
 	    gameBoardSet = true;
+	    isOver = false;
+	} else {
+	    passButton.setEnabled(false);
+	    playButton.setEnabled(false);
+	    refreshButton.setEnabled(true);
 	    isOver = false;
 	}
 	
@@ -216,7 +221,7 @@ public class tictacGUI extends JFrame{
 
 	passButton.setEnabled(false);
 	playButton.setEnabled(false);
-	refreshButton.setEnabled(false);
+	refreshButton.setEnabled(true);
 	gameBoardSet = true;
 	
 	for(int i=0; i<9; i++) {
@@ -255,17 +260,19 @@ public class tictacGUI extends JFrame{
 	    sendBoard = winner + sendBoard;
 
 	    System.out.println("playMove: "+sendBoard);
-
+	    
 	    //new
 	    if(!winner.equals("-")) {
 		node.sendTurn(sendBoard);
 		node.sendResult(sendBoard);
+		endTurn();
 	    }else{
 		node.sendTurn(sendBoard);
+		endTurn();
+		waitForBoard();
+		refreshButton.setEnabled(true);
 	    }
 	    madeMove = false;
-	    endTurn();
-	    waitForBoard();
 	} else {
 	    JOptionPane.showMessageDialog(this, "You need to make a move to play it.");
 	}
@@ -280,11 +287,8 @@ public class tictacGUI extends JFrame{
 
     private void refresh() {
 	if(!node.isPlaying()){
-	    String board;
-	    if(!node.isHost())
-		board = node.askForBoard();
-	    else board = node.getGameBoard();
-	    refreshBoard(board);
+	    gameBoard = node.getGameBoard();
+	    getBoard(gameBoard);
 	}
     }
 

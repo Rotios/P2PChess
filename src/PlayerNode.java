@@ -78,7 +78,7 @@ public class PlayerNode{
 	return curPlayer;
     }
 
-    public Boolean resetState(){
+    public boolean resetState(){
 	inGame = false;
 	isUpdated = false;
 	isPlaying = false;
@@ -112,19 +112,11 @@ public class PlayerNode{
 	} else {return false;}
     }
     
-    //Refresh Button
+    /* //Refresh Button
     public String askForBoard(){
-	try{
-	    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
-	    
-	    //client.execute("handler.printStuff", new String[0]);
-	    this.gameBoard = (String) client.execute("handler.getGameBoard", new String[0]);
-	    
-	    return gameBoard;
-	} catch(Exception e){ System.out.println("ERROR"); return "";}
 	
     }
-
+    */
     //Start Button
     public boolean startGame() {
 	boolean result = false;
@@ -462,6 +454,15 @@ public class PlayerNode{
     }
 
     public String getGameBoard() {
+	if (!isHost) {
+	    try{
+		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
+		
+		//client.execute("handler.printStuff", new String[0]);
+		this.gameBoard = (String) client.execute("handler.getGameBoard", new String[0]);
+		
+	    } catch(Exception e){ System.out.println("ERROR"); return "";}
+	} 
 	return gameBoard;
     }
 
