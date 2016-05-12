@@ -16,7 +16,7 @@ public class PlayerNode{
 
     // By default the player is in none of the following states:
     private static boolean isMaster = false;
-    private static boolean isHost = false;
+    //    private static boolean isHost = false;
     private static boolean inGame = false;
     private static boolean isPlaying = false;
 
@@ -25,14 +25,15 @@ public class PlayerNode{
     private static String portNumber = "";
     private static String myIP = "";
     private static String masterIP = "";
+    
     private static String hostIP = "";
-
     private static String curPlayer = "";
     private static String gameBoard = "";
 
     // HashMaps to save known hosts and players
     private static HashMap<String, String> hosts= new HashMap<String, String>();
     private static HashMap<String, String> players= new HashMap<String, String>();
+    private static HashMap<String, String> games = new HashMap<String, String>();
 
     //XMLRPC Client Vars
     private static XmlRpcClientConfigImpl config;
@@ -120,7 +121,7 @@ public class PlayerNode{
 	boolean result = false;
 
 	// Change the state of the node
-	isHost = true;
+	//	isHost = true;
 	inGame = true;
 	isPlaying = true;
 	gameBoard = "-----------";
@@ -146,45 +147,24 @@ public class PlayerNode{
 	return result;
     }
 
-    //Random Button
-    public boolean connectToRandom() {
-	boolean result = false;
-	try{
-	    
-	    // Ensures that master is the current IP of the client
-	    config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
-	    
-	    // Get a random host from the Master's Hosts HashTable
-	    hostIP = (String) client.execute("handler.getRandomHostIP", new String[0]);
-
-	    // Connect to the random host above
-	    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
-	    
-	    // Tell the Host to add self to game
-	    result = (boolean) client.execute("handler.addPlayer", new String[] {userName, myIP});
-	    
-	    //Request the Game Board
-	    gameBoard = (String) client.execute("handler.getGameBoard", new String[0]);
-	    
-	    // Change the state appropriately
-	    isPlaying = false;
-	    inGame = true;
-	    result = true;
-	} catch(Exception e) {
-	    System.err.println("We failed in Random Connection " + e);
-	    return false;
-	} 
-	return result;
-    }
-
     public String getRandomHostIP(){
-	if(hosts.isEmpty()) return "None Found";
-	
-	Random rand = new Random();
-	String[] keys = (String[]) this.hosts.keySet().toArray(new String[0]);
-	int i = rand.nextInt(keys.length);
-
-	return this.hosts.get(keys[i]);
+	try{
+	    if(!isMaster) {
+		// Ensures that master is the current IP of the client
+		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
+		
+		// Get a random host from the Master's Hosts HashTable
+		return (String) client.execute("handler.getRandomHostIP", new String[0]);
+	    }
+	    
+	    if(hosts.isEmpty()) return "None Found";
+	    
+	    Random rand = new Random();
+	    String[] keys = (String[]) this.hosts.keySet().toArray(new String[0]);
+	    int i = rand.nextInt(keys.length);
+	    
+	    return this.hosts.get(keys[i]);
+	} catch(Exception e){return "ERRORORORORO";}
     }    
 
     public String getRandomPlayerIP(){
@@ -200,52 +180,48 @@ public class PlayerNode{
     public boolean connectToHost(String host) {
 	boolean result = false;
 	try{	    
-	    hostIP = host;
-	    // Ensures that master is the current IP of the client
-	    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
-	    
-	    // Get a random host from the Master's Hosts HashTable
-	    hostIP = (String) client.execute("handler.getRandomHostIP", new String[0]);
-
 	    // Connect to the random host above
-	    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
+	    config.setServerURL(new URL("http://" + host + ":" + portNumber));
 	    
 	    // Tell the Host to add self to game
 	    result = (boolean) client.execute("handler.addPlayer", new String[] {userName, myIP});
 	    
 	    //Request the Game Board
-	    gameBoard = (String) client.execute("handler.getGameBoard", new String[0]);
+	    //gameBoard = (String) client.execute("handler.getGameBoard", new String[0]);
 	    
 	    // Change the state appropriately
 	    isPlaying = false;
 	    inGame = true;
 	    result = true;
 	} catch(Exception e) {
-	    System.err.println("We failed in Random Connection " + e);
+	    System.err.println("We failed in Connection to Host " + e);
 	    return false;
 	} 
 	return result;
     }
 
-    public boolean quitGame() {
+    public boolean quitGame(String hostName) {
 	try {
-	    if (!isHost && (!isPlaying)) {
-		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
+	    if (!isHost(hostName) && (!isPlaying)) {
+		config.setServerURL(new URL("http://" + games.get(hostName) + ":" + portNumber));
 		client.execute("handler.removePlayer", new String[] {userName});
-		resetState();
-		
+
 		return true;
 	    } else if (!isPlaying || (players.keySet().toArray().length <= 1)){
 		removePlayer(userName);
 		if (players.keySet().toArray().length != 0) {
-		    String playerIP = getRandomPlayerIP();
-		    config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
-		    client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
+		    Set<String> recipients = players.keySet();
+		    for(String recip: recipients){   
+			config.setServerURL(new URL("http://" + players.get(recip) + 
+						    ":" + portNumber));
+			boolean check = (boolean) client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
+			if(check) break;
+		    }
 		}
+		games.remove(hostName);
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
 		
-		resetState();
 		return true;
 	    }
 	    return false;
@@ -254,15 +230,16 @@ public class PlayerNode{
 
     public boolean makeHost(HashMap playerList, String currentPlayer, String gameBoard) {
 	try {
-	    this.gameBoard = gameBoard;
-	    curPlayer = currentPlayer;
-	    isHost = true;
-	    hostIP = myIP;
-	    players = playerList;
-	    contactAll(players, "handler.setHost", new String[] {myIP});
-	    config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
-	    client.execute("handler.newHost", new String[] {userName, myIP});
-	    return true;
+	    if (isHost()) {
+		this.gameBoard = gameBoard;
+		curPlayer = currentPlayer;
+		players = playerList;
+		contactAll(players, "handler.setHost", new String[] {myIP});
+		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
+		client.execute("handler.newHost", new String[] {userName, myIP});
+		return true;
+	    } 
+	    return false;
 	} catch (Exception e) { return false;}
     }
 
@@ -275,28 +252,26 @@ public class PlayerNode{
     public boolean logout(){
 	//System.exit(1);
 	try{
-	    if (!isMaster) {
-		if(isHost){
-		    quitGame();
-		} else if (inGame) {
-		    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
-		    client.execute("handler.removePlayer", new String[] {userName});
-		}
-	    } else {
-		// If you are the master, pass along your duties
-		if (isHost) {
-		    hosts.remove(userName);
-		}
-		String newMasterIP = getRandomHostIP();
-		config.setServerURL(new URL("http://" + newMasterIP + ":" + portNumber));
-		    
-		// Tell the first host in the hosts HashTable to become the master
-		if((boolean) client.execute("handler.setMaster", new String[] {})){
-		    isMaster = false;
-		    resetState();
-		} 
+	    if (isMaster){
 		
+		String hostIp = getRandomHostIP();
+		config.setServerURL(new URL("http://" + hostIp + 
+					    ":" + portNumber));
+		client.execute("handler.makeMaster", new Object[] {hosts});
+		
+		isMaster = false;
 	    }
+	    
+	    if(isHost()){
+		quitGame(userName);
+		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
+		client.execute("handler.removeHost", new String[] {userName});
+	    }
+	    
+	    if (inGame()) {
+		contactAll(games, "handler.removePlayer", new String[] {userName});
+	    }
+
 	    return true;
 	} catch (Exception e) {return false;}
     }
@@ -307,14 +282,14 @@ public class PlayerNode{
 	return isPlaying;
     }
 
-    public boolean sendTurn(String newBoard) {
+    public boolean sendTurn(String newBoard, String gameName) {
         try{
-	    if(isHost) {
+	    if(isHost(gameName)) {
 		processTurn(newBoard);
 		return true;
 	    } else{
 		isPlaying = false;
-		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
+		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
 		boolean turnMade = (boolean) client.execute("handler.processTurn", new String[] {newBoard});
 		return turnMade;
 	    }
@@ -328,78 +303,63 @@ public class PlayerNode{
 	    String playerIP = this.getRandomPlayerIP();
 	    System.out.println("This guy has it = " + playerIP);
 	    curPlayer = playerIP;
-	    if (playerIP.equals(myIP)) {
-		isPlaying = true;
-		inGame = true;
+
+	    /**	    ADD A TIMEOUT FEATURE
+		    if (playerIP.equals(myIP)) {
 		result = true;
 	    } else {
-	    
 		// Connect to the random host above
 		config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
 	    	
-		client.execute("handler.setGameBoard", new String[] {newBoard});
 		client.execute("handler.setIsPlaying", new Boolean[] {true});
 		
 		// Change the state appropriately
 		isPlaying = false;
-		inGame = true;
 		result = true;
-	    }
+		}*/
 	}
-	catch (Exception e) {return result;}
+	catch (Exception e) {return false;}
 	return result;
-    }
-
-    //Used to indicate it's your turn in game
-    public boolean setGameBoard(String currBoard) {
-        gameBoard = currBoard;
-	return true;
     }
 
     //Used by host to add player to queue for game
     public boolean addPlayer(String user, String ip) {
-        System.out.println("am I host? " + isHost);
-	if(!isHost) return false;
         players.put(user, ip);
 	System.out.println("The Players are: " + players);
         return true;
     }
 
     public boolean removePlayer(String user){
-	if (!isHost) return false;
 	players.remove(user);
 	return true;
     }
-
+ 
+   /*
     //Used to indicate game is over
-    public boolean setResult(String endBoard) {
-        gameBoard = endBoard;
-	System.out.println("setResult: "+gameBoard);	
-	inGame = false;
-	isPlaying = false;
+    public boolean setResult() {
 	curPlayer = "";
 	return true;
     }
 
     //Used by host to propogate out result
-    public boolean sendResult(String endBoard) {
+    public boolean sendResult(String gameName, String endBoard) {
 	System.out.println("sendResult: "+endBoard);
         try {
-	    if(isHost){
-		setResult(endBoard);
+	    if(isHost(gameName)){
+		this.gameBoard = endboard;
+		setResult();
 		config.setServerURL(new URL("http://" + masterIP + 
 					    ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
-		contactAll(players, "handler.setResult", new String[] {endBoard});
 	    } else {
-		setResult(endBoard);
-		config.setServerURL(new URL("http://" + hostIP + 
+		config.setServerURL(new URL("http://" + games.get(gameName) + 
 					    ":" + portNumber));
 		client.execute("handler.sendResult", new String[] {endBoard});
 	    }
 	    return true;
         } catch (Exception e) { return false;}
     }
+    */
 
     //Used by master node to add new host/game to list
     public boolean newHost(String name, String ip) {
@@ -421,12 +381,12 @@ public class PlayerNode{
     }
 
     //Used to indicate node as new master
-    public boolean setMaster() {
+    public boolean makeMaster(HashMap hosts) {
 	try{
-            refresh();
+	    this.hosts = hosts;
             isMaster = true;
             masterIP = myIP;
-
+	    
 	    contactAll(hosts, "handler.newMaster", new String[] {masterIP});
 	} catch (Exception e) {return false;}
 	return true;
@@ -442,24 +402,22 @@ public class PlayerNode{
 	return true;
     }
     
-
     //Used to get known hosts of this node
     public HashMap<String,String> getHosts() {
 	System.out.println("got hosts? = " + this.hosts);
 	return this.hosts;
     }
 
-    public String getGameBoard() {
-	if (!isHost) {
+    public String getGameBoard(String hostName) {
+	if (!isHost(hostName)) {
 	    try{
-		config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
+		config.setServerURL(new URL("http://" + games.get(hostName) + ":" + portNumber));
 		
 		//client.execute("handler.printStuff", new String[0]);
-		this.gameBoard = (String) client.execute("handler.getGameBoard", new String[0]);
+		return (String) client.execute("handler.getGameBoard", new String[]{hostName});
 		
 	    } catch(Exception e){ System.out.println("ERROR"); return "";}
-	} 
-	return gameBoard;
+	} else return gameBoard;
     }
 
     //Return port number node is running on
@@ -477,27 +435,43 @@ public class PlayerNode{
 	return isMaster;
     }
 
-    public boolean isPlaying() {
-	return isPlaying;
+    public boolean isPlaying(String gameName) {
+	try{
+	    if(isHost(gameName)) {
+		return curPlayer.equals(userName);
+	    } else {
+		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
+		return ((String) client.execute("handler.getCurPlayer", new String[]{})).equals(userName);
+	    }
+	} catch (Exception e){return false;}
     }
     
-    public boolean setIsPlaying(Boolean playing){
-	isPlaying = playing;
-	return true;
+    public boolean isHost() {
+	return (games.get(userName) != null);
     }
 
     //Return if node is hosting game
-    public boolean isHost() {
-	return isHost;
-    }
-
-    public boolean setInGame(boolean inGame) {
-	this.inGame = inGame;
-	return true;
+    public boolean isHost(String hostName) {
+	return userName.equals(hostName);
     }
 
     public boolean inGame() {
-	return inGame;
+	return !games.isEmpty();
+    }
+
+    public boolean inGame(String gameName){
+	return (games.get(gameName) != null);
+    }
+
+    public String getUserName() {
+	return userName;
+    }
+
+    public String getUserName(String IP){
+	try{
+	    config.setServerURL(new URL("http://" + IP + ":" + portNumber));
+	    return (String) client.execute("handler.getUserName", new String[0]);
+	} catch(Exception e) {return "";}
     }
 
     public boolean startClient(){

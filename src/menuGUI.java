@@ -122,24 +122,15 @@ public class menuGUI extends JFrame{
 
     private void startGame() {
 	node.startGame();
-	new tictacGUI(node);
+	new tictacGUI(node, node.getUserName());
 	System.out.println("In menu Start -" + node.getHosts());
 	// Host stuff for a game
     }
 
     private void connectRandomGame() {
-	System.out.println("In menu Random 1-" + node.getHosts());
-	if (node.connectToRandom()){
-	    System.out.println("In menu Random 2-" + node.getHosts());
-	    // Get the gameboard to display (set in connectToRandom)
-	    new tictacGUI(node);
-	    /*while(node.inGame()){
-	      if(!node.isPlaying()){
-	      node.waitForTurn();
-	      }else{
-	      //node.playTurn();
-	      }
-	      }*/
+	String hostIP = node.getRandomHostIP();
+	if (node.connectToHost(hostIP)){
+	    new tictacGUI(node, node.getUserName(hostIP));
 	}
     }
 

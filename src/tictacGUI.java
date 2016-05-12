@@ -28,15 +28,18 @@ public class tictacGUI extends JFrame{
     private boolean madeMove;
     private boolean isOver;
     private boolean gameBoardSet;
+    
+    private String hostName;
 
     public static PlayerNode node;
 
-    public tictacGUI(PlayerNode node){
+    public tictacGUI(PlayerNode node, String hostName){
 	setTitle(TITLE);
 	setSize(WIDTH, HEIGHT);
 	setDefaultCloseOperation(EXIT_ON_CLOSE);
-
+	
 	this.node = node;
+	this.hostName = hostName;
 
 	content = getContentPane();
 	content.setLayout(new GridLayout(2,1));
@@ -139,20 +142,19 @@ public class tictacGUI extends JFrame{
 	t.schedule(new TimerTask() {
 		@Override
 		    public void run() {
-		    if(node.isPlaying() && !gameBoardSet){
-			getBoard(tictacGUI.node.getGameBoard());
+		    if(node.isPlaying(hostName) && !gameBoardSet){
+			setBoard(tictacGUI.node.getGameBoard(hostName));
 		    } else { //if (!tictacGUI.node.inGame()) {
-			refresh();//getBoard(tictacGUI.node.getGameBoard());
+			refresh();//setBoard(tictacGUI.node.getGameBoard(hostName));
 		    }
 		}
 	    }, 0, 1000);
     }
 
-    private void getBoard(String gameBoard) {
+    private void setBoard(String gameBoard) {
 	this.gameBoard = gameBoard;
 
 	char[] array = gameBoard.toCharArray();
-	System.out.println("getBoard: "+array[0]);
 
 	if(array[1] == 'O') {
 	    noughts = true;
@@ -183,7 +185,7 @@ public class tictacGUI extends JFrame{
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
-	} else if (node.isPlaying()){
+	} else if (node.isPlaying(hostName)){
 	    passButton.setEnabled(true);
 	    playButton.setEnabled(true);
 	    gameBoardSet = true;
@@ -196,7 +198,7 @@ public class tictacGUI extends JFrame{
 		ch = 'X';
 	    } else if(array[i+2] == 'O') {
 		ch = 'O';
-	    } else if (!isOver && node.isPlaying()){
+	    } else if (!isOver && node.isPlaying(hostName)){
 		cells[i].setEnabled(true);
 	    }
 	    cells[i].setText(""+ch);
@@ -254,9 +256,9 @@ public class tictacGUI extends JFrame{
     }
 
     private void refresh() {
-	if(!node.isPlaying()){
-	    gameBoard = node.getGameBoard();
-	    getBoard(gameBoard);
+	if(!isOver){
+	    gameBoard = node.getGameBoard(hostName);
+	    setBoard(gameBoard);
 	} 
     }
 
