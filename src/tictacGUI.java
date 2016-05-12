@@ -166,7 +166,6 @@ public class tictacGUI extends JFrame{
 	    result.setText("Crosses Win!");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
-	    refreshButton.setEnabled(false);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
@@ -174,23 +173,15 @@ public class tictacGUI extends JFrame{
 	    result.setText("Noughts Win!");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
-	    refreshButton.setEnabled(false);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
 	} else if (node.isPlaying()){
 	    passButton.setEnabled(true);
 	    playButton.setEnabled(true);
-	    refreshButton.setEnabled(false);
 	    gameBoardSet = true;
 	    isOver = false;
-	} 
-	/*else {
-	    passButton.setEnabled(false);
-	    playButton.setEnabled(false);
-	    refreshButton.setEnabled(true);
-	    isOver = false;
-	    }*/
+	}
 	
 	for(int i=0; i<9; i++) {
 	    char ch = ' ';
@@ -198,7 +189,7 @@ public class tictacGUI extends JFrame{
 		ch = 'X';
 	    } else if(array[i+2] == 'O') {
 		ch = 'O';
-	    } else if (!isOver){
+	    } else if (!isOver && isPlaying){
 		cells[i].setEnabled(true);
 	    }
 	    cells[i].setText(""+ch);
