@@ -176,6 +176,13 @@ public class tictacGUI extends JFrame{
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
+	}else if(array[0] == 'T'){
+	    result.setText("Tie");
+	    passButton.setEnabled(false);
+	    playButton.setEnabled(false);
+	    t.cancel();
+	    t.purge();
+	    isOver = true;
 	} else if (node.isPlaying()){
 	    passButton.setEnabled(true);
 	    playButton.setEnabled(true);
@@ -230,6 +237,7 @@ public class tictacGUI extends JFrame{
     }
     private void playMove() {
 	String sendBoard = "";
+	int count = 0;
 	if(madeMove) {
 	    for(int i=0; i<9; i++) {
 		String str = cells[i].getText();
@@ -237,10 +245,14 @@ public class tictacGUI extends JFrame{
 		    sendBoard += "-";
 		} else {
 		    sendBoard += str;
+		    count++;
 		}
 	    }
-      
+	    
 	    String winner = checkWinner(sendBoard);
+	    if(winner.equals("-") && count == 9){
+		winner = "T";
+	    }
 
 	    //pass doesnt change x or o
 	    if(noughts){
@@ -313,10 +325,10 @@ public class tictacGUI extends JFrame{
 	} else if(array[2] == array[4] && array[4] == array[6] && array[2] != '-') {
 	    return ""+array[2];
 	} else {
-	    return "-";
+		return "-";
 	}
     }
-
+    
     private void quitGame(){
 	if(node.quitGame()) {
 	    this.setVisible(false);
