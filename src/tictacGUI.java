@@ -189,7 +189,7 @@ public class tictacGUI extends JFrame{
 		ch = 'X';
 	    } else if(array[i+2] == 'O') {
 		ch = 'O';
-	    } else if (!isOver && isPlaying){
+	    } else if (!isOver && node.isPlaying()){
 		cells[i].setEnabled(true);
 	    }
 	    cells[i].setText(""+ch);
