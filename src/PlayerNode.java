@@ -18,10 +18,7 @@ public class PlayerNode{
     private static boolean isMaster = false;
     private static boolean isHost = false;
     private static boolean inGame = false;
-    private static boolean isUpdated = false;
     private static boolean isPlaying = false;
-
-    private static String gameBoard = "";
 
     // IP's and User Info
     private static String userName = "";
@@ -29,7 +26,9 @@ public class PlayerNode{
     private static String myIP = "";
     private static String masterIP = "";
     private static String hostIP = "";
+
     private static String curPlayer = "";
+    private static String gameBoard = "";
 
     // HashMaps to save known hosts and players
     private static HashMap<String, String> hosts= new HashMap<String, String>();
@@ -80,7 +79,6 @@ public class PlayerNode{
 
     public boolean resetState(){
 	inGame = false;
-	isUpdated = false;
 	isPlaying = false;
 	
 	hostIP = "";
@@ -124,7 +122,6 @@ public class PlayerNode{
 	// Change the state of the node
 	isHost = true;
 	inGame = true;
-	isUpdated = true;
 	isPlaying = true;
 	gameBoard = "-----------";
 	players.clear();
@@ -326,7 +323,6 @@ public class PlayerNode{
 
     public boolean processTurn(String newBoard) {
         gameBoard = newBoard;
-        isUpdated = false;
 	boolean result = false;
 	try{
 	    String playerIP = this.getRandomPlayerIP();
@@ -502,10 +498,6 @@ public class PlayerNode{
 
     public boolean inGame() {
 	return inGame;
-    }
-
-    public boolean isUpdated() {
-	return isUpdated;
     }
 
     public boolean startClient(){

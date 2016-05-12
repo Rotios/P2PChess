@@ -130,7 +130,7 @@ public class tictacGUI extends JFrame{
 	choosen = null;
 	setVisible(true);
 	gameBoardSet = false;
-
+	refresh();
 	waitForBoard();
     }
 
@@ -139,10 +139,10 @@ public class tictacGUI extends JFrame{
 	t.schedule(new TimerTask() {
 		@Override
 		    public void run() {
-		    if(tictacGUI.node.isPlaying() && !gameBoardSet){
+		    if(node.isPlaying() && !gameBoardSet){
 			getBoard(tictacGUI.node.getGameBoard());
-		    } else if (!tictacGUI.node.inGame()) {
-			getBoard(tictacGUI.node.getGameBoard());
+		    } else { //if (!tictacGUI.node.inGame()) {
+			refresh();//getBoard(tictacGUI.node.getGameBoard());
 		    }
 		}
 	    }, 0, 1000);
@@ -204,37 +204,6 @@ public class tictacGUI extends JFrame{
   
     }
 
-    private void refreshBoard(String gameBoard){
-	this.gameBoard = gameBoard;
-
-	char[] array = gameBoard.toCharArray();
-	System.out.println("getBoard: "+array[0]);
-
-	if(array[1] == 'O') {
-	    noughts = true;
-	    result.setText("Noughts Move");
-	} else {
-	    noughts = false;
-	    result.setText("Crosses Move");
-	}
-
-	passButton.setEnabled(false);
-	playButton.setEnabled(false);
-	refreshButton.setEnabled(true);
-	gameBoardSet = true;
-	
-	for(int i=0; i<9; i++) {
-	    char ch = ' ';
-	    if(array[i+2] == 'X') {
-		ch = 'X';
-	    } else if(array[i+2] == 'O') {
-		ch = 'O';
-	    } 
-	    cells[i].setEnabled(false);
-	    cells[i].setText(""+ch);
-	}
-  
-    }
     private void playMove() {
 	String sendBoard = "";
 	if(madeMove) {
@@ -288,7 +257,7 @@ public class tictacGUI extends JFrame{
 	if(!node.isPlaying()){
 	    gameBoard = node.getGameBoard();
 	    getBoard(gameBoard);
-	}
+	} 
     }
 
     private void endTurn() {

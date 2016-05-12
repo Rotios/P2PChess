@@ -115,7 +115,7 @@ public class menuGUI extends JFrame{
 
 	highlighter = games.getHighlighter();
 	painter = new DefaultHighlighter.DefaultHighlightPainter(Color.lightGray);
-
+	refresh();
 	//set window visible
 	setVisible(true);
     }
