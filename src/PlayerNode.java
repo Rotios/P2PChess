@@ -19,7 +19,7 @@ public class PlayerNode{
     //    private static boolean isHost = false;
     private static boolean inGame = false;
     private static boolean isPlaying = false;
-
+    
     // IP's and User Info
     private static String userName = "";
     private static String portNumber = "";
@@ -29,20 +29,20 @@ public class PlayerNode{
     private static String hostIP = "";
     private static String curPlayer = "";
     private static String gameBoard = "";
-
+    
     // HashMaps to save known hosts and players
     private static HashMap<String, String> hosts= new HashMap<String, String>();
     private static HashMap<String, String> players= new HashMap<String, String>();
     private static HashMap<String, String> games = new HashMap<String, String>();
-
+    
     //XMLRPC Client Vars
     private static XmlRpcClientConfigImpl config;
     private static XmlRpcClient client;
-
+    
     //XMLRPC Server Vars
     private static XmlRpcServerConfigImpl serverConfig;
     private static XmlRpcServer xmlRpcServer;
-
+    
     public PlayerNode(){}
 
     public PlayerNode(String user, String port){
@@ -303,20 +303,21 @@ public class PlayerNode{
 	    String playerIP = this.getRandomPlayerIP();
 	    System.out.println("This guy has it = " + playerIP);
 	    curPlayer = playerIP;
-
-	    /**	    ADD A TIMEOUT FEATURE
-		    if (playerIP.equals(myIP)) {
+	    
+	    /**	ADD A TIMEOUT FEATURE
+		if (playerIP.equals(myIP)) {
 		result = true;
-	    } else {
+		} else {
 		// Connect to the random host above
 		config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
-	    	
+		
 		client.execute("handler.setIsPlaying", new Boolean[] {true});
 		
 		// Change the state appropriately
 		isPlaying = false;
 		result = true;
-		}*/
+		}
+	    */
 	}
 	catch (Exception e) {return false;}
 	return result;
@@ -333,33 +334,6 @@ public class PlayerNode{
 	players.remove(user);
 	return true;
     }
- 
-   /*
-    //Used to indicate game is over
-    public boolean setResult() {
-	curPlayer = "";
-	return true;
-    }
-
-    //Used by host to propogate out result
-    public boolean sendResult(String gameName, String endBoard) {
-	System.out.println("sendResult: "+endBoard);
-        try {
-	    if(isHost(gameName)){
-		this.gameBoard = endboard;
-		setResult();
-		config.setServerURL(new URL("http://" + masterIP + 
-					    ":" + portNumber));
-		client.execute("handler.removeHost", new String[] {userName});
-	    } else {
-		config.setServerURL(new URL("http://" + games.get(gameName) + 
-					    ":" + portNumber));
-		client.execute("handler.sendResult", new String[] {endBoard});
-	    }
-	    return true;
-        } catch (Exception e) { return false;}
-    }
-    */
 
     //Used by master node to add new host/game to list
     public boolean newHost(String name, String ip) {
