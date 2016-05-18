@@ -6,7 +6,6 @@ import java.util.TimerTask;
 
 public class tictacGUI extends JFrame{
 
-    private static final String TITLE = "Jose Murders Puppies w/ Pleasure";
     private static final int WIDTH = 450;
     private static final int HEIGHT = 600;
 
@@ -17,9 +16,7 @@ public class tictacGUI extends JFrame{
     private JButton[] cells;
     private JButton passButton;
     private JButton playButton;
-    private JButton refreshButton;
     private JButton quitButton;
-
     private JButton choosen;
 
     String gameBoard;
@@ -34,13 +31,13 @@ public class tictacGUI extends JFrame{
     public static PlayerNode node;
 
     public tictacGUI(PlayerNode node, String hostName){
-	setTitle(TITLE);
+	setTitle("This game hosted by " + hostName);
 	setSize(WIDTH, HEIGHT);
 	setDefaultCloseOperation(EXIT_ON_CLOSE);
 	
 	this.node = node;
 	this.hostName = hostName;
-
+	System.out.println("gameName/hostName = " + hostName);
 	content = getContentPane();
 	content.setLayout(new GridLayout(2,1));
 
@@ -99,14 +96,6 @@ public class tictacGUI extends JFrame{
 	    }
 	    );
 
-	refreshButton = new JButton("REFRESH");
-	refreshButton.addActionListener(new java.awt.event.ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-		    refresh();
-		}
-	    }
-	    );
-
 	quitButton = new JButton("QUIT");
 	quitButton.setEnabled(true);
 	quitButton.addActionListener(new java.awt.event.ActionListener() {
@@ -122,7 +111,6 @@ public class tictacGUI extends JFrame{
 
 	buttons.add(result);
 	buttons.add(quitButton);
-	buttons.add(refreshButton);
 	buttons.add(passButton);
 	buttons.add(playButton);
 
@@ -133,7 +121,7 @@ public class tictacGUI extends JFrame{
 	choosen = null;
 	setVisible(true);
 	gameBoardSet = false;
-	refresh();
+	refresh();	
 	waitForBoard();
     }
 
@@ -143,8 +131,10 @@ public class tictacGUI extends JFrame{
 		@Override
 		    public void run() {
 		    if(node.isPlaying(hostName) && !gameBoardSet){
+			System.out.println("Setting to play");
 			setBoard(tictacGUI.node.getGameBoard(hostName));
-		    } else { //if (!tictacGUI.node.inGame()) {
+		    } else if (!node.isPlaying(hostName)){ //if (!tictacGUI.node.inGame()) {
+			System.out.println("refreshing");
 			refresh();//setBoard(tictacGUI.node.getGameBoard(hostName));
 		    }
 		}
@@ -153,9 +143,9 @@ public class tictacGUI extends JFrame{
 
     private void setBoard(String gameBoard) {
 	this.gameBoard = gameBoard;
-
+	
 	char[] array = gameBoard.toCharArray();
-
+	
 	if(array[1] == 'O') {
 	    noughts = true;
 	    result.setText("Noughts Move");
@@ -233,15 +223,15 @@ public class tictacGUI extends JFrame{
 	    
 	    //new
 	    if(!winner.equals("-")) {
-		node.sendTurn(sendBoard);
-		node.sendResult(sendBoard);
+		node.sendTurn(sendBoard, hostName);
+		//node.sendResult(sendBoard);
 		endTurn();
 	    }else{
-		node.sendTurn(sendBoard);
+		node.sendTurn(sendBoard, hostName);
 		endTurn();
 		waitForBoard();
-		refreshButton.setEnabled(true);
 	    }
+	    gameBoardSet = false;
 	    madeMove = false;
 	} else {
 	    JOptionPane.showMessageDialog(this, "You need to make a move to play it.");
@@ -250,7 +240,7 @@ public class tictacGUI extends JFrame{
 
     private void passMove() {
 	System.out.println(gameBoard);
-	node.sendTurn(gameBoard);
+	node.sendTurn(gameBoard, hostName);
 	endTurn();
 	waitForBoard();
     }
@@ -268,7 +258,6 @@ public class tictacGUI extends JFrame{
 	}
 	playButton.setEnabled(false);
 	passButton.setEnabled(false);
-	refreshButton.setEnabled(true);
 	gameBoardSet = false;
     } 
 
@@ -303,7 +292,7 @@ public class tictacGUI extends JFrame{
     }
     
     private void quitGame(){
-	if(node.quitGame()) {
+	if(node.quitGame(hostName)) {
 	    this.setVisible(false);
 	    t.cancel();
 	    t.purge();

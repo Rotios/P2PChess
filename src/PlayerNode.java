@@ -28,7 +28,7 @@ public class PlayerNode{
     
     private static String hostIP = "";
     private static String curPlayer = "";
-    private static String gameBoard = "";
+    private static String gameBoard = "---------";
     
     // HashMaps to save known hosts and players
     private static HashMap<String, String> hosts= new HashMap<String, String>();
@@ -105,9 +105,10 @@ public class PlayerNode{
 	    try{
 		//client.execute("handler.printStuff", new String[0]);
 		this.hosts = (HashMap<String,String>) client.execute("handler.getHosts", new String[0]);
+		
 		System.out.println("In refresh = " + this.hosts);
 		return true;
-	    } catch(Exception e){ System.out.println("ERROR"); return false;}
+	    } catch(Exception e){ System.out.println("ERROR REFRESH"); return false;}
 	} else {return false;}
     }
     
@@ -127,7 +128,8 @@ public class PlayerNode{
 	gameBoard = "-----------";
 	players.clear();
 	hostIP = myIP;
-	curPlayer = myIP;
+	curPlayer = userName;
+	addGame(userName, myIP);
 
 	System.out.println("Started game. isMaster is " + isMaster);
 	try{
@@ -147,24 +149,35 @@ public class PlayerNode{
 	return result;
     }
 
-    public String getRandomHostIP(){
+    public String getRandomHostIP() throws Exception{
 	try{
+	    HashMap<String, String> hostList = hosts;
 	    if(!isMaster) {
 		// Ensures that master is the current IP of the client
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		
 		// Get a random host from the Master's Hosts HashTable
-		return (String) client.execute("handler.getRandomHostIP", new String[0]);
+		hostList = (HashMap<String,String>) client.execute("handler.getHosts", new String[0]);
 	    }
 	    
-	    if(hosts.isEmpty()) return "None Found";
+	    if(hostList.isEmpty()) throw new Exception("None Found");
+	    
+	    String[] keys = (String[]) hostList.keySet().toArray(new String[0]);
+	    int size = keys.length;
+	    if(size <= games.keySet().toArray().length) throw new Exception("None Found");
 	    
 	    Random rand = new Random();
-	    String[] keys = (String[]) this.hosts.keySet().toArray(new String[0]);
-	    int i = rand.nextInt(keys.length);
 	    
-	    return this.hosts.get(keys[i]);
-	} catch(Exception e){return "ERRORORORORO";}
+	    int i = rand.nextInt(keys.length);
+	    String ip = hostList.get(keys[i]);
+	    
+	    while(games.get(ip) != null){
+		i = rand.nextInt(keys.length);
+		ip = hosts.get(keys[i]);
+	    }
+	    return ip;
+		
+	} catch(Exception e){return "ERROR GET RANDOM HOST IP";}
     }    
 
     public String getRandomPlayerIP(){
@@ -177,11 +190,15 @@ public class PlayerNode{
 	return this.players.get(keys[i]);
     }
 
-    public boolean connectToHost(String host) {
+    public boolean connectToHost(String hostName, String hostIP) {
 	boolean result = false;
 	try{	    
+	    if(games.get(hostName) != null){
+		return result;
+	    } 
+	   
 	    // Connect to the random host above
-	    config.setServerURL(new URL("http://" + host + ":" + portNumber));
+	    config.setServerURL(new URL("http://" + hostIP + ":" + portNumber));
 	    
 	    // Tell the Host to add self to game
 	    result = (boolean) client.execute("handler.addPlayer", new String[] {userName, myIP});
@@ -192,6 +209,7 @@ public class PlayerNode{
 	    // Change the state appropriately
 	    isPlaying = false;
 	    inGame = true;
+	    addGame(hostName, hostIP);
 	    result = true;
 	} catch(Exception e) {
 	    System.err.println("We failed in Connection to Host " + e);
@@ -200,14 +218,14 @@ public class PlayerNode{
 	return result;
     }
 
-    public boolean quitGame(String hostName) {
+    public boolean quitGame(String gameName) {
 	try {
-	    if (!isHost(hostName) && (!isPlaying)) {
-		config.setServerURL(new URL("http://" + games.get(hostName) + ":" + portNumber));
+	    if (!isHost(gameName) && (!isPlaying(gameName))) {
+		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
 		client.execute("handler.removePlayer", new String[] {userName});
 
 		return true;
-	    } else if (!isPlaying || (players.keySet().toArray().length <= 1)){
+	    } else if (!isPlaying(gameName) || (players.keySet().toArray().length <= 1)){
 		removePlayer(userName);
 		if (players.keySet().toArray().length != 0) {
 		    Set<String> recipients = players.keySet();
@@ -218,7 +236,7 @@ public class PlayerNode{
 			if(check) break;
 		    }
 		}
-		games.remove(hostName);
+		games.remove(gameName);
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
 		
@@ -276,19 +294,20 @@ public class PlayerNode{
 	} catch (Exception e) {return false;}
     }
 
-    //Used while in queue for game
+    /*//Used while in queue for game
     public boolean waitForTurn() {
         while(!isPlaying) {}
 	return isPlaying;
     }
+    */
 
+    // Sends out the turn the node made to the host.
     public boolean sendTurn(String newBoard, String gameName) {
         try{
 	    if(isHost(gameName)) {
 		processTurn(newBoard);
 		return true;
 	    } else{
-		isPlaying = false;
 		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
 		boolean turnMade = (boolean) client.execute("handler.processTurn", new String[] {newBoard});
 		return turnMade;
@@ -300,9 +319,9 @@ public class PlayerNode{
         gameBoard = newBoard;
 	boolean result = false;
 	try{
-	    String playerIP = this.getRandomPlayerIP();
-	    System.out.println("This guy has it = " + playerIP);
-	    curPlayer = playerIP;
+	    String nextPlayerIP = this.getRandomPlayerIP();
+	    System.out.println("This guy has it = " + nextPlayerIP);
+	    curPlayer = getUserName(nextPlayerIP);
 	    
 	    /**	ADD A TIMEOUT FEATURE
 		if (playerIP.equals(myIP)) {
@@ -321,6 +340,11 @@ public class PlayerNode{
 	}
 	catch (Exception e) {return false;}
 	return result;
+    }
+
+    public boolean addGame(String gameName, String hostIP){
+	games.put(gameName, hostIP);
+	return true;
     }
 
     //Used by host to add player to queue for game
@@ -390,7 +414,7 @@ public class PlayerNode{
 		//client.execute("handler.printStuff", new String[0]);
 		return (String) client.execute("handler.getGameBoard", new String[]{hostName});
 		
-	    } catch(Exception e){ System.out.println("ERROR"); return "";}
+	    } catch(Exception e){ System.out.println("ERROR GetGameBoard"); return "";}
 	} else return gameBoard;
     }
 

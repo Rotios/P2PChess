@@ -128,16 +128,31 @@ public class menuGUI extends JFrame{
     }
 
     private void connectRandomGame() {
-	String hostIP = node.getRandomHostIP();
-	if (node.connectToHost(hostIP)){
-	    new tictacGUI(node, node.getUserName(hostIP));
+	try{
+	    String hostIP = node.getRandomHostIP();
+	    String hostName = node.getUserName(hostIP);
+	    if (node.connectToHost(hostName, hostIP)){
+		new tictacGUI(node, hostName);
+	    } else System.out.println("Reconnect");
+	} catch (Exception e) {
+	    System.out.println("No New IP's Found");
 	}
     }
 
     private void refresh() {
-	games.setText("");
 	node.refresh();
-	games.setText(node.getHosts().toString());
+	// Get hosts as a string and get rid of curly braces
+	String hosts = node.getHosts().toString();
+	hosts = hosts.substring(1);
+	hosts = hosts.substring(0, hosts.length() - 1);
+	
+	if(hosts.contains(", ")) 
+	    hosts = hosts.replace(",","\n");
+	if(hosts.contains("=")) 
+	    hosts = hosts.replace("=","\t");
+	
+	hosts = "host\tIP\n" + hosts;
+	games.setText(hosts);
     }
 
     private void logout() {
