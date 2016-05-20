@@ -28,7 +28,8 @@ public class PlayerNode{
     
     private static String hostIP = "";
     private static String curPlayer = "";
-    private static String gameBoard = "---------";
+    private static final String initialBoard = ".white.br.bn.bb.bq.bk.bb.bn.br.bp.bp.bp.bp.bp.bp.bp.bp.................................wp.wp.wp.wp.wp.wp.wp.wp.wr.wn.wb.wq.wk.wb.wn.wr";
+    private static String gameBoard = ".white.br.bn.bb.bq.bk.bb.bn.br.bp.bp.bp.bp.bp.bp.bp.bp.................................wp.wp.wp.wp.wp.wp.wp.wp.wr.wn.wb.wq.wk.wb.wn.wr";
     
     // HashMaps to save known hosts and players
     private static HashMap<String, String> hosts= new HashMap<String, String>();
@@ -115,12 +116,11 @@ public class PlayerNode{
     //Start Button
     public boolean startGame() {
 	boolean result = false;
-
+	gameBoard = initialBoard;
 	// Change the state of the node
 	//	isHost = true;
 	inGame = true;
 	isPlaying = true;
-	gameBoard = "-----------";
 	players.clear();
 	hostIP = myIP;
 	curPlayer = userName;
@@ -213,9 +213,9 @@ public class PlayerNode{
 	return result;
     }
 
-    public boolean quitGame(String gameName, boolean isOver) {
+    public boolean quitGame(String gameName) {
 	try {
-	    boolean check;
+	    boolean check = false;
 	    if (!isHost(gameName) && !isPlaying(gameName)) {
 		System.out.println("Quitting Game, not host");
 		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
@@ -282,7 +282,7 @@ public class PlayerNode{
 	    }
 	    
 	    if(isHost()){
-		quitGame(userName, false);
+		quitGame(userName);
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
 	    }
@@ -309,19 +309,19 @@ public class PlayerNode{
 		processTurn(newBoard);
 		return true;
 	    } else{
+		
 		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
 		boolean turnMade = (boolean) client.execute("handler.processTurn", new String[] {newBoard});
 		return turnMade;
 	    }
-	} catch(Exception e) {return false;}
+	} catch(Exception e) {System.out.println("PROBLEM HERE");return false;}
     }
 
     public boolean processTurn(String newBoard) {
         gameBoard = newBoard;
 	boolean result = false;
 	try{
-	    System.out.println(newBoard.substring(0,1));
-	    if (!newBoard.substring(0,1).equals("-")){
+	    if (!newBoard.substring(0,1).equals(".")){
 		curPlayer = "-";
 	    }
 	    else {
@@ -330,7 +330,7 @@ public class PlayerNode{
 		curPlayer = getUserName(nextPlayerIP);
 	    }
 	}
-	catch (Exception e) {return false;}
+	catch (Exception e) {System.out.println("PROBLEM PROCESSING");return false;}
 	return result;
     }
 

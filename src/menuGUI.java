@@ -123,7 +123,7 @@ public class menuGUI extends JFrame{
     private void startGame() {
 	if(!node.isHost()){
 	    node.startGame();
-	    new tictacGUI(node, user);
+	    new ChessGUI(node, user);
 	    System.out.println("In menu Start -" + node.getHosts());
 	    // Host stuff for a game
 	}
@@ -136,7 +136,7 @@ public class menuGUI extends JFrame{
 	    String hostName = node.getUserName(hostIP);
 	    if (hostName != user){
 		if (node.connectToHost(hostName, hostIP)){
-		    new tictacGUI(node, hostName);
+		    new ChessGUI(node, hostName);
 		}
 	    } else System.out.println("Reconnect");
 	} catch (Exception e) {
