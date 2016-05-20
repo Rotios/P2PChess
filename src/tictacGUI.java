@@ -125,7 +125,6 @@ public class tictacGUI extends JFrame{
     }
 
     private void waitForBoard(){
-	//making a timer each time it is called. needs fix.
 	t.schedule(new TimerTask() {
 		@Override
 		    public void run() {
@@ -157,7 +156,6 @@ public class tictacGUI extends JFrame{
 	    result.setText("Crosses Win!");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
-	    node.removeGame(hostName);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
@@ -165,7 +163,6 @@ public class tictacGUI extends JFrame{
 	    result.setText("Noughts Win!");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
-	    node.removeGame(hostName);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
@@ -173,7 +170,6 @@ public class tictacGUI extends JFrame{
 	    result.setText("Tie");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
-	    node.removeGame(hostName);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
@@ -220,7 +216,6 @@ public class tictacGUI extends JFrame{
 	    }
 
 	    sendBoard = winner + sendBoard;
-
 	    System.out.println("playMove: "+sendBoard);
 	    
 	    //new
@@ -294,7 +289,7 @@ public class tictacGUI extends JFrame{
     }
     
     private void quitGame(){
-	if(node.quitGame(hostName)) {
+	if(node.quitGame(hostName, isOver)) {
 	    this.setVisible(false);
 	    t.cancel();
 	    t.purge();

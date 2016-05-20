@@ -19,7 +19,7 @@ public class menuGUI extends JFrame{
     //Container to hold everything that needs to be displayed
     private Container content;
 
-    private PlayerNode node;
+    private static PlayerNode node;
 
     private JLabel info;
 
