@@ -46,7 +46,13 @@ public class Chess {
 
             Piece[][] oldBoard = gameBoard.board.clone();
 
-            if(!gameBoard.canAnyPieceMakeAnyMove(colorToggle(color))){
+            if(gameBoard.isInCheckMate(colorToggle(color))){
+              System.out.println("Checkmate. " + color + " wins");
+              System.out.println("Game over!");
+              return;
+            }
+
+            /*if(!gameBoard.canAnyPieceMakeAnyMove(colorToggle(color))){
                 if(gameBoard.isInCheck(colorToggle(color))){
                     System.out.println("Checkmate. " + color + " wins");
                     System.out.println("Game over!");
@@ -54,7 +60,7 @@ public class Chess {
                     System.out.println("Stalemate!");
                 }
                 return;
-            }
+            }*/
 
             gameBoard.board = oldBoard;
 

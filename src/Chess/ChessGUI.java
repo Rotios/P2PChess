@@ -266,6 +266,7 @@ public class ChessGUI {
       private void playMove() {
         if(!madeMove) return;
 
+        String sendBoard = "";
         int column1, column2, row1, row2;
 
         column1 = prev.getColumn();
@@ -288,7 +289,13 @@ public class ChessGUI {
 
         Piece[][] oldBoard = cBoard.board.clone();
 
-        if(!cBoard.canAnyPieceMakeAnyMove(colorToggle(color))){
+        if(cBoard.isInCheckMate(colorToggle(color))){
+          System.out.println("Checkmate. " + color + " wins");
+          System.out.println("Game over!");
+          //return;
+        }
+
+        /*if(!cBoard.canAnyPieceMakeAnyMove(colorToggle(color))){
             if(cBoard.isInCheck(colorToggle(color))){
                 System.out.println("Checkmate. " + color + " wins");
                 System.out.println("Game over!");
@@ -296,7 +303,7 @@ public class ChessGUI {
                 System.out.println("Stalemate!");
             }
             return;
-        }
+        }*/
 
         cBoard.board = oldBoard;
 
@@ -306,6 +313,19 @@ public class ChessGUI {
 
         color = colorToggle(color);
 
+        for(int i = 0; i < 8; i++){
+          for(int j = 0; j < 8; j++){
+            sendBoard += "." + gameBoard[Math.abs(i-7)][j];
+          }
+        }
+
+        sendBoard = "." + color + sendBoard;
+
+        if(cBoard.isInCheckMate(color)){
+          sendBoard = colorToggle(color) + sendBoard;
+        }
+
+        System.out.println(sendBoard);
         System.out.println(cBoard);
 
         madeMove = false;
@@ -402,6 +422,8 @@ public class ChessGUI {
             } catch(IOException io){
               test = false;
             }
+
+            System.out.println(""+test);
 
             if(test){
               prev.setBackground(col);

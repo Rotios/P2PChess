@@ -5,7 +5,7 @@ public class Board {
     public Piece[][] board = new Piece[8][8];
 
     public Board(){
-        //this.initialize();
+        this.initialize();
     }
 
     private void initialize(){
@@ -115,6 +115,8 @@ public class Board {
         int row = kingPos[0];
         int col = kingPos[1];
 
+        //System.out.println(row +" "+ col);
+
         for(int x = 0; x<board.length; x++){
             for(int y = 0; y<board[0].length; y++){
                 if(board[x][y] != null){
@@ -126,6 +128,13 @@ public class Board {
         }
 
         return false;
+    }
+
+    private void undoMove(String move, String color){
+      int[] moveArray = parseInput(move);
+
+      board[moveArray[2]][moveArray[3]] = board[moveArray[0]][moveArray[1]];
+      board[moveArray[0]][moveArray[1]] = null;
     }
 
     /**
@@ -155,19 +164,34 @@ public class Board {
         //System.out.println(""+board[moveArray[0]][moveArray[1]].validateMove(board, moveArray[0], moveArray[1], moveArray[2], moveArray[3]));
 
         if(board[moveArray[0]][moveArray[1]].validateMove(board, moveArray[0], moveArray[1], moveArray[2], moveArray[3])){
-            //This means the move was valid\
+            //This means the move was valid
 
-            if(isInCheck(color)){
-                //Because the current player put him/herself in check
-                //I need to find out what is going to happen to the board in this case
-                System.out.println("1");
-                throw new IOException("4");
-            }
+            Piece taken = null;
 
             if(actuallyMove){
                 //Switch the two spots on the board because the move was valid
+                taken = board[moveArray[2]][moveArray[3]];
                 board[moveArray[2]][moveArray[3]] = board[moveArray[0]][moveArray[1]];
                 board[moveArray[0]][moveArray[1]] = null;
+            }
+
+            if(isInCheck(color)){
+              if(actuallyMove){
+                board[moveArray[0]][moveArray[1]] = board[moveArray[2]][moveArray[3]];
+                board[moveArray[2]][moveArray[3]] = taken;
+                throw new IOException();
+              } else {
+                taken = board[moveArray[2]][moveArray[3]];
+                board[moveArray[2]][moveArray[3]] = board[moveArray[0]][moveArray[1]];
+                board[moveArray[0]][moveArray[1]] = null;
+                if(isInCheck(color)){
+                  board[moveArray[0]][moveArray[1]] = board[moveArray[2]][moveArray[3]];
+                  board[moveArray[2]][moveArray[3]] = taken;
+                  throw new IOException();
+                }
+                board[moveArray[0]][moveArray[1]] = board[moveArray[2]][moveArray[3]];
+                board[moveArray[2]][moveArray[3]] = taken;
+              }
             }
 
             if(board[moveArray[2]][moveArray[3]] != null){
@@ -314,7 +338,7 @@ public class Board {
                         try{
                             if(board[x][y] != null){
                                 if(board[x][y].getColor().equals(color)){
-                                    System.out.println(coordinatesToMoveString(x, y, w, z));
+                                    //System.out.println(coordinatesToMoveString(x, y, w, z));
                                     performMove(coordinatesToMoveString(x, y, w, z), board[x][y].getColor(), false);
                                     board = oldBoard;
                                     return true;
@@ -333,35 +357,41 @@ public class Board {
         return false;
     }
 
+
+    //Returns wheather a move put the other player in checkmate
     public boolean isInCheckMate(String color){
       Piece[][] oldBoard = board.clone();
+      Piece taken = null;
+
+      if(!isInCheck(color)) return false;
 
       for(int x = 0; x<board.length; x++){
           for(int y = 0; y<board[0].length; y++){
-              //Check this piece against every other piece...
               for(int w = 0; w<board.length; w++){
                   for(int z = 0; z<board[0].length; z++){
                       try{
                           if(board[x][y] != null){
                               if(board[x][y].getColor().equals(color)){
-                                  System.out.println(coordinatesToMoveString(x, y, w, z));
+                                  //System.out.println(coordinatesToMoveString(x, y, w, z));
+                                  if(board[w][z] != null) taken = board[w][z];
+                                  else taken = null;
                                   performMove(coordinatesToMoveString(x, y, w, z), board[x][y].getColor(), true);
-                                  if(isInCheck(color)){
-                                    board = oldBoard;
+                                  if(!isInCheck(color)){
+                                    undoMove(coordinatesToMoveString(w, z, x, y), board[w][z].getColor());
+                                    board[w][z] = taken;
                                     return false;
+                                  } else {
+                                    undoMove(coordinatesToMoveString(w, z, x, y), board[w][z].getColor());
+                                    board[w][z] = taken;
                                   }
                               }
                           }
-                          board = oldBoard;
                       } catch(Exception e){
-                          board = oldBoard;
                       }
                   }
               }
           }
       }
-
-      board = oldBoard;
       return true;
     }
 
