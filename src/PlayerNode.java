@@ -213,12 +213,12 @@ public class PlayerNode{
 	return result;
     }
 
-    public boolean quitGame(String gameName) {
+    public boolean quitGame(String gameName, boolean isOver) {
 	try {
-	    System.out.println("" + inGame(gameName) + isHost(gameName) + isPlaying(gameName));
-	    if ((!isHost(gameName) && !isPlaying(gameName)) || !inGame(gameName)) {
-		System.out.println("Quitting GAme, not host");
-config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
+	    boolean check;
+	    if (!isHost(gameName) && !isPlaying(gameName)) {
+		System.out.println("Quitting Game, not host");
+		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
 		client.execute("handler.removePlayer", new String[] {userName});
 		games.remove(gameName);
 		return true;
@@ -229,10 +229,14 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
 		    for(String recip: recipients){   
 			config.setServerURL(new URL("http://" + players.get(recip) + 
 						    ":" + portNumber));
-			boolean check = (boolean) client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
+			check = (boolean) client.execute("handler.makeHost", new Object[] {players, curPlayer, gameBoard});
 			if(check) break;
 		    }
 		}
+		if(!check){
+		    gameBoard = "T" + gameBoard.substring(1);
+		}
+
 		games.remove(gameName);
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
@@ -240,12 +244,13 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
 		return true;
 	    }
 	    return false;
-	} catch (Exception e) {return false;} 
+	} catch (Exception e) {System.out.println("Exception at QuitGame");return false;} 
     }
 
     public boolean makeHost(HashMap playerList, String currentPlayer, String gameBoard) {
 	try {
 	    if (isHost()) {
+		System.out.println("MAKING HOST");
 		this.gameBoard = gameBoard;
 		curPlayer = currentPlayer;
 		players = playerList;
@@ -255,7 +260,7 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
 		return true;
 	    } 
 	    return false;
-	} catch (Exception e) { return false;}
+	} catch (Exception e) { System.out.println("EXception Make Host");return false;}
     }
 
     public boolean setHost(String hostIP){
@@ -265,7 +270,6 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
     
     //Logout Button
     public boolean logout(){
-	//System.exit(1);
 	try{
 	    if (isMaster){
 		
@@ -278,7 +282,7 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
 	    }
 	    
 	    if(isHost()){
-		quitGame(userName);
+		quitGame(userName, false);
 		config.setServerURL(new URL("http://" + masterIP + ":" + portNumber));
 		client.execute("handler.removeHost", new String[] {userName});
 	    }
@@ -316,24 +320,15 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
         gameBoard = newBoard;
 	boolean result = false;
 	try{
-	    String nextPlayerIP = this.getRandomPlayerIP();
-	    System.out.println("This guy has it = " + nextPlayerIP);
-	    curPlayer = getUserName(nextPlayerIP);
-	    
-	    /**	ADD A TIMEOUT FEATURE
-		if (playerIP.equals(myIP)) {
-		result = true;
-		} else {
-		// Connect to the random host above
-		config.setServerURL(new URL("http://" + playerIP + ":" + portNumber));
-		
-		client.execute("handler.setIsPlaying", new Boolean[] {true});
-		
-		// Change the state appropriately
-		isPlaying = false;
-		result = true;
-		}
-	    */
+	    System.out.println(newBoard.substring(0,1));
+	    if (!newBoard.substring(0,1).equals("-")){
+		curPlayer = "-";
+	    }
+	    else {
+		String nextPlayerIP = this.getRandomPlayerIP();
+		System.out.println("This guy has it = " + nextPlayerIP);
+		curPlayer = getUserName(nextPlayerIP);
+	    }
 	}
 	catch (Exception e) {return false;}
 	return result;
@@ -388,12 +383,13 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
             masterIP = myIP;
 	    
 	    contactAll(hosts, "handler.newMaster", new String[] {masterIP});
-	} catch (Exception e) {return false;}
+	} catch (Exception e) {System.out.println("FAILED to MAKE MASTER"); return false;}
 	return true;
     }
 
     public boolean contactAll(HashMap map, String method, Object[] toSend) throws Exception{
 	Set<String> recipients = map.keySet();
+	if(recipients.toArray().length <= 0) return true;
 	for(String recip: recipients){   
 	    config.setServerURL(new URL("http://" + map.get(recip) + 
 					":" + portNumber));
@@ -506,7 +502,7 @@ config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber))
 	    server.start();
 
 	    System.out.println("Started Server successfully.");
-	    System.out.println("Accepting requests. (Halt program to stop.)");
+	    System.out.println("Accepting reqests. (Halt program to stop.)");
 	    return true;
 	} catch (Exception exception){
 	    //System.err.println("JavaServer: " + exception);
