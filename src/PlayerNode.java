@@ -112,11 +112,6 @@ public class PlayerNode{
 	} else {return false;}
     }
     
-    /* //Refresh Button
-    public String askForBoard(){
-	
-    }
-    */
     //Start Button
     public boolean startGame() {
 	boolean result = false;
@@ -177,7 +172,7 @@ public class PlayerNode{
 	    }
 	    return ip;
 		
-	} catch(Exception e){return "ERROR GET RANDOM HOST IP";}
+	} catch(Exception e){throw new Exception("None Found");}
     }    
 
     public String getRandomPlayerIP(){
@@ -220,10 +215,12 @@ public class PlayerNode{
 
     public boolean quitGame(String gameName) {
 	try {
-	    if (!isHost(gameName) && (!isPlaying(gameName))) {
-		config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
+	    System.out.println("" + inGame(gameName) + isHost(gameName) + isPlaying(gameName));
+	    if ((!isHost(gameName) && !isPlaying(gameName)) || !inGame(gameName)) {
+		System.out.println("Quitting GAme, not host");
+config.setServerURL(new URL("http://" + games.get(gameName) + ":" + portNumber));
 		client.execute("handler.removePlayer", new String[] {userName});
-
+		games.remove(gameName);
 		return true;
 	    } else if (!isPlaying(gameName) || (players.keySet().toArray().length <= 1)){
 		removePlayer(userName);
@@ -344,6 +341,11 @@ public class PlayerNode{
 
     public boolean addGame(String gameName, String hostIP){
 	games.put(gameName, hostIP);
+	return true;
+    }
+
+    public boolean removeGame(String gameName){
+	games.remove(gameName);
 	return true;
     }
 
@@ -481,7 +483,7 @@ public class PlayerNode{
 	    config.setServerURL(new URL("http://" + masterIP  + ":" + portNumber));
 	    config.setEnabledForExtensions(true);
 	    client.setConfig(config);
-  
+
 	    System.out.println("Started Client successfully.");
 	    return true;
 	} catch (Exception e) {

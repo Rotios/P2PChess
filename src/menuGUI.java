@@ -121,18 +121,23 @@ public class menuGUI extends JFrame{
     }
 
     private void startGame() {
-	node.startGame();
-	new tictacGUI(node, node.getUserName());
-	System.out.println("In menu Start -" + node.getHosts());
-	// Host stuff for a game
+	if(!node.isHost()){
+	    node.startGame();
+	    new tictacGUI(node, user);
+	    System.out.println("In menu Start -" + node.getHosts());
+	    // Host stuff for a game
+	}
     }
 
     private void connectRandomGame() {
 	try{
+	    refresh();
 	    String hostIP = node.getRandomHostIP();
 	    String hostName = node.getUserName(hostIP);
-	    if (node.connectToHost(hostName, hostIP)){
-		new tictacGUI(node, hostName);
+	    if (hostName != user){
+		if (node.connectToHost(hostName, hostIP)){
+		    new tictacGUI(node, hostName);
+		}
 	    } else System.out.println("Reconnect");
 	} catch (Exception e) {
 	    System.out.println("No New IP's Found");
@@ -147,7 +152,7 @@ public class menuGUI extends JFrame{
 	hosts = hosts.substring(0, hosts.length() - 1);
 	
 	if(hosts.contains(", ")) 
-	    hosts = hosts.replace(",","\n");
+	    hosts = hosts.replace(", ","\n");
 	if(hosts.contains("=")) 
 	    hosts = hosts.replace("=","\t");
 	

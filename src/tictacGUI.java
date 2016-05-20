@@ -19,14 +19,13 @@ public class tictacGUI extends JFrame{
     private JButton quitButton;
     private JButton choosen;
 
-    String gameBoard;
-
     private boolean noughts;
     private boolean madeMove;
     private boolean isOver;
     private boolean gameBoardSet;
     
     private String hostName;
+    private String gameBoard;
 
     public static PlayerNode node;
 
@@ -158,6 +157,7 @@ public class tictacGUI extends JFrame{
 	    result.setText("Crosses Win!");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
+	    node.removeGame(hostName);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
@@ -165,6 +165,7 @@ public class tictacGUI extends JFrame{
 	    result.setText("Noughts Win!");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
+	    node.removeGame(hostName);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
@@ -172,6 +173,7 @@ public class tictacGUI extends JFrame{
 	    result.setText("Tie");
 	    passButton.setEnabled(false);
 	    playButton.setEnabled(false);
+	    node.removeGame(hostName);
 	    t.cancel();
 	    t.purge();
 	    isOver = true;
@@ -299,9 +301,4 @@ public class tictacGUI extends JFrame{
 	    this.dispose();
 	}
     }
-    
-    /*public static void main(String[] args) {
-    //Create TicTacToe object
-    tictacGUI gui=new tictacGUI();
-    }*/
 }
