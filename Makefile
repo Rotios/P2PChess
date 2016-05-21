@@ -7,4 +7,3 @@ all:
 	# We use version 3.1.3.
 
 	javac src/*.java
-	javac src/Chess/*.java

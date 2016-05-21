@@ -50,9 +50,9 @@ public class menuGUI extends JFrame{
     public menuGUI(String user, String port){
 	this.user = user;
 	this.port = port;
-	this.master = "localhost";
 	node = new PlayerNode(user, port);
-	myIp = node.getIP();
+	this.myIp = node.getIP();
+	this.master = myIp;
 	init();
     }
 
@@ -158,6 +158,9 @@ public class menuGUI extends JFrame{
 	
 	hosts = "host\tIP\n" + hosts;
 	games.setText(hosts);
+	
+	master = node.getMasterIP();
+	info.setText("<html>UserName: "+user+"<br>Port: "+port+"<br>My IP: "+ myIp + "<br>Master: "+master+"</html>");
     }
 
     private void logout() {

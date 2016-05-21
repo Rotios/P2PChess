@@ -17,7 +17,7 @@ public class ChessGUI {
     private TileHandler[][] tileHandlers = new TileHandler[8][8];
     private Image[][] chessPieceImages = new Image[2][6];
     private JPanel chessBoard;
-    private final JLabel message = new JLabel("This is chess.");
+    private JLabel message = new JLabel("This is chess.");
     private static final String COLS = "ABCDEFGH";
 
 
@@ -496,7 +496,7 @@ public class ChessGUI {
 	t.schedule(new TimerTask() {
 		@Override
 		    public void run() {
-		    boolean isPlaying = node.isPlaying(host);
+		    isPlaying = node.isPlaying(host);
 		    if(isPlaying && !gameBoardSet){
 			JOptionPane.showMessageDialog(f, "It's your turn!");
 			refresh();
@@ -505,7 +505,7 @@ public class ChessGUI {
 			refresh();
 		    }
 		}
-	    }, 0, 10000);
+	    }, 0, 1000000);
     }
 
     private void passMove() {
